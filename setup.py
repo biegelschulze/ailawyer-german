@@ -4,8 +4,8 @@ from src.indexer import create_index, create_chroma_index
 
 def setup():
     parser = argparse.ArgumentParser(description="Setup AI Lawyer DB")
-    parser.add_argument("--target", choices=["pickle", "chroma", "all"], default="pickle", help="Ziel-Datenbank (pickle, chroma oder all)")
-    parser.add_argument("--skip-parse", action="store_true", help="XML-Parsing überspringen")
+    parser.add_argument("--target", choices=["pickle", "chroma", "all"], default="pickle", help="Wählt das Format der zu erstellenden Vektor-Datenbank (Standard: pickle)")
+    parser.add_argument("--skip-parse", action="store_true", help="Überspringt das Parsen der XML-Gesetze (spart Zeit, wenn JSON bereits existiert)")
     args = parser.parse_args()
 
     if not args.skip_parse:
