@@ -7,10 +7,10 @@ from src.session import load_history, save_history, generate_session_id
 
 console = Console()
 
-def process_query(query, history, verbose=True):
-    with console.status("[bold green]Denke nach...", spinner="dots"):
+def process_query(query, history, db_type="pickle", verbose=True):
+    with console.status(f"[bold green]Denke nach (DB: {db_type})...", spinner="dots"):
         # Wir entpacken jetzt 4 Rückgabewerte
-        answer, sources, prompt, context = get_answer(query, history)
+        answer, sources, prompt, context = get_answer(query, history, db_type=db_type)
     
     if verbose:
         console.print("\n[bold yellow]--- Gefundener Kontext (Vector DB) ---[/bold yellow]")
@@ -40,6 +40,7 @@ def main():
     parser.add_argument("-i", "--interactive", action="store_true", help="Interaktiver Chat-Modus")
     parser.add_argument("--session", type=str, help="Session-ID zum Laden/Speichern des Verlaufs")
     parser.add_argument("-q", "--quiet", action="store_true", help="Weniger Ausgaben (kein Prompt/Kontext)")
+    parser.add_argument("--db", choices=["pickle", "sqlite"], default="pickle", help="Datenbank-Typ (pickle oder sqlite)")
     
     args = parser.parse_args()
     
@@ -56,7 +57,7 @@ def main():
 
     # Modus 1: Einzelne Abfrage
     if args.query:
-        answer = process_query(args.query, history, not args.quiet)
+        answer = process_query(args.query, history, db_type=args.db, verbose=not args.quiet)
         
         if session_id:
             history.append({"role": "user", "content": args.query})
@@ -68,7 +69,7 @@ def main():
 
     # Modus 2: Interaktiver Loop
     if args.interactive:
-        console.print("[bold green]Interaktiver Modus gestartet. 'exit' oder 'quit' zum Beenden.[/bold green]\n")
+        console.print(f"[bold green]Interaktiver Modus gestartet (DB: {args.db}). 'exit' oder 'quit' zum Beenden.[/bold green]\n")
         
         while True:
             try:
@@ -79,7 +80,7 @@ def main():
                 if not user_input.strip():
                     continue
                 
-                answer = process_query(user_input, history, not args.quiet)
+                answer = process_query(user_input, history, db_type=args.db, verbose=not args.quiet)
                 
                 # Update History
                 history.append({"role": "user", "content": user_input})

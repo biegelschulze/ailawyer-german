@@ -4,7 +4,44 @@ from google.genai import types
 import pickle
 import time
 from tqdm import tqdm
-from src.config import JSON_FILE, DB_FILE, API_KEY, EMBEDDING_MODEL
+from src.config import JSON_FILE, DB_FILE, API_KEY, EMBEDDING_MODEL, VECTOR_DB_FILE
+from src.vector_db import SimpleVectorDB
+
+def create_sqlite_index():
+    print(f"Initialisiere SQLite VectorDB in {VECTOR_DB_FILE}...")
+    vdb = SimpleVectorDB(VECTOR_DB_FILE)
+
+    # Check if pickle exists to fast-track
+    try:
+        with open(DB_FILE, 'rb') as f:
+            print(f"Lade existierende Embeddings aus {DB_FILE}...")
+            data = pickle.load(f)
+            embeddings = data["embeddings"]
+            metadatas = data["metadatas"]
+            
+            print(f"Füge {len(embeddings)} Dokumente zu SQLite VectorDB hinzu...")
+            
+            batch_size = 1000
+            for i in tqdm(range(0, len(embeddings), batch_size)):
+                batch_embeddings = embeddings[i:i+batch_size]
+                batch_metas = metadatas[i:i+batch_size]
+                
+                ids = [str(m['id']) for m in batch_metas]
+                docs = [f"{m['id']} {m['title']}\n{m['text']}" for m in batch_metas]
+                
+                vdb.add(
+                    ids=ids,
+                    embeddings=batch_embeddings,
+                    metadatas=batch_metas,
+                    documents=docs
+                )
+            
+            print("SQLite Index erstellt!")
+            return
+            
+    except FileNotFoundError:
+        print("Keine Pickle-Datei gefunden. Bitte führen Sie zuerst das normale Setup aus.")
+        return
 
 def create_index():
     print("Initialisiere Gemini API Client (V1)...")
