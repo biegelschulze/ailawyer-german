@@ -1,5 +1,9 @@
 import os
 import glob
+from dotenv import load_dotenv
+
+# Lade Umgebungsvariablen aus .env Datei
+load_dotenv()
 
 # Basis-Pfad des Projekts
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -14,6 +18,6 @@ JSON_FILE = os.path.join(DATA_DIR, 'all_laws_parsed.json')
 DB_FILE = os.path.join(DATA_DIR, 'legal_embeddings.pkl')
 
 # API Konfiguration
-API_KEY = "AIzaSyAP613DBPLvcDJ1QLOn-9YPm6n6tpYZClw"
+API_KEY = os.getenv("GEMINI_API_KEY")
 EMBEDDING_MODEL = "models/gemini-embedding-001"
 GENERATION_MODEL = "models/gemini-3-flash-preview"
