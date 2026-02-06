@@ -50,11 +50,19 @@ Ein juristischer KI-Assistent für deutsches Recht, basierend auf Google Gemini 
 
 ## Setup (Datenbank initialisieren)
 
+### 1. Gesetze herunterladen (Optional)
+Standardmäßig sind einige Grundgesetze enthalten. Du kannst weitere Gesetze von [gesetze-im-internet.de](https://www.gesetze-im-internet.de/aktuell.html) laden:
+```bash
+python scripts/download_laws.py bgb stgb aktg
+```
+
+### 2. Parsen und Indexieren
 Bevor der Agent genutzt werden kann, müssen die Gesetze geparst und der Vektor-Index erstellt werden:
 
 ```bash
 python setup.py
 ```
+Nutze `python setup.py --target chroma` für die Nutzung von ChromaDB.
 *Hinweis: Dies erfordert einen aktiven API-Key für die Erstellung der Embeddings.*
 
 ## Nutzung

@@ -34,12 +34,19 @@ The system leverages:
     pip install -r requirements.txt
     ```
 
-3.  **Initialization:**
+3.  **Data Acquisition:**
+    Laws are sourced from [gesetze-im-internet.de](https://www.gesetze-im-internet.de/aktuell.html).
+    To download specific laws (using their abbreviations):
+    ```bash
+    python scripts/download_laws.py bgb stgb aktg
+    ```
+
+4.  **Initialization:**
     Before running the agent, the database must be built:
     ```bash
     python setup.py
     ```
-    This script parses XML files in `data/` and creates the vector embeddings.
+    This script parses XML files in `data/` and creates the vector embeddings. Use `--target chroma` to use ChromaDB instead of the default Pickle index.
 
 ## Usage Commands
 
