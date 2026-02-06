@@ -16,7 +16,7 @@ XML_FILES = glob.glob(os.path.join(DATA_DIR, '*.xml'))
 
 JSON_FILE = os.path.join(DATA_DIR, 'all_laws_parsed.json')
 DB_FILE = os.path.join(DATA_DIR, 'legal_embeddings.pkl')
-VECTOR_DB_FILE = os.path.join(DATA_DIR, 'vector_store.db')
+CHROMA_DB_DIR = os.path.join(DATA_DIR, 'chroma_db')
 
 # API Konfiguration
 API_KEY = os.getenv("GEMINI_API_KEY")

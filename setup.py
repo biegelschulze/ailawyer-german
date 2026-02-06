@@ -1,10 +1,10 @@
 import argparse
 from src.parser import parse_all_laws
-from src.indexer import create_index, create_sqlite_index
+from src.indexer import create_index, create_chroma_index
 
 def setup():
     parser = argparse.ArgumentParser(description="Setup AI Lawyer DB")
-    parser.add_argument("--target", choices=["pickle", "sqlite", "all"], default="pickle", help="Ziel-Datenbank (pickle, sqlite oder all)")
+    parser.add_argument("--target", choices=["pickle", "chroma", "all"], default="pickle", help="Ziel-Datenbank (pickle, chroma oder all)")
     parser.add_argument("--skip-parse", action="store_true", help="XML-Parsing überspringen")
     args = parser.parse_args()
 
@@ -18,9 +18,9 @@ def setup():
         print("Erstelle Pickle Index...")
         create_index()
         
-    if args.target in ["sqlite", "all"]:
-        print("Erstelle SQLite Index...")
-        create_sqlite_index()
+    if args.target in ["chroma", "all"]:
+        print("Erstelle Chroma Index...")
+        create_chroma_index()
 
     print("\nSetup abgeschlossen!")
 

@@ -3,13 +3,14 @@ from google import genai
 from google.genai import types
 import pickle
 import time
+import chromadb
 from tqdm import tqdm
-from src.config import JSON_FILE, DB_FILE, API_KEY, EMBEDDING_MODEL, VECTOR_DB_FILE
-from src.vector_db import SimpleVectorDB
+from src.config import JSON_FILE, DB_FILE, API_KEY, EMBEDDING_MODEL, CHROMA_DB_DIR
 
-def create_sqlite_index():
-    print(f"Initialisiere SQLite VectorDB in {VECTOR_DB_FILE}...")
-    vdb = SimpleVectorDB(VECTOR_DB_FILE)
+def create_chroma_index():
+    print(f"Initialisiere ChromaDB in {CHROMA_DB_DIR}...")
+    client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
+    collection = client.get_or_create_collection(name="german_law")
 
     # Check if pickle exists to fast-track
     try:
@@ -19,24 +20,31 @@ def create_sqlite_index():
             embeddings = data["embeddings"]
             metadatas = data["metadatas"]
             
-            print(f"Füge {len(embeddings)} Dokumente zu SQLite VectorDB hinzu...")
+            print(f"Füge {len(embeddings)} Dokumente zu ChromaDB hinzu...")
             
             batch_size = 1000
             for i in tqdm(range(0, len(embeddings), batch_size)):
                 batch_embeddings = embeddings[i:i+batch_size]
                 batch_metas = metadatas[i:i+batch_size]
                 
-                ids = [str(m['id']) for m in batch_metas]
+                # Ensure unique IDs
+                ids = [f"id_{j}" for j in range(i, min(i + batch_size, len(embeddings)))]
                 docs = [f"{m['id']} {m['title']}\n{m['text']}" for m in batch_metas]
                 
-                vdb.add(
+                # Metadata cleaning
+                clean_metas = []
+                for m in batch_metas:
+                    clean_m = {k: v for k, v in m.items() if isinstance(v, (str, int, float, bool))}
+                    clean_metas.append(clean_m)
+
+                collection.add(
                     ids=ids,
                     embeddings=batch_embeddings,
-                    metadatas=batch_metas,
+                    metadatas=clean_metas,
                     documents=docs
                 )
             
-            print("SQLite Index erstellt!")
+            print("Chroma Index erstellt!")
             return
             
     except FileNotFoundError:

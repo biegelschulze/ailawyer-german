@@ -40,7 +40,7 @@ def main():
     parser.add_argument("-i", "--interactive", action="store_true", help="Interaktiver Chat-Modus")
     parser.add_argument("--session", type=str, help="Session-ID zum Laden/Speichern des Verlaufs")
     parser.add_argument("-q", "--quiet", action="store_true", help="Weniger Ausgaben (kein Prompt/Kontext)")
-    parser.add_argument("--db", choices=["pickle", "sqlite"], default="pickle", help="Datenbank-Typ (pickle oder sqlite)")
+    parser.add_argument("--db", choices=["pickle", "chroma"], default="pickle", help="Datenbank-Typ (pickle oder chroma)")
     
     args = parser.parse_args()
     

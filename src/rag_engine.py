@@ -2,9 +2,9 @@ import pickle
 from google import genai
 from google.genai import types
 import numpy as np
-from src.vector_db import SimpleVectorDB
+import chromadb
 from sklearn.metrics.pairwise import cosine_similarity
-from src.config import DB_FILE, API_KEY, EMBEDDING_MODEL, GENERATION_MODEL, VECTOR_DB_FILE
+from src.config import DB_FILE, API_KEY, EMBEDDING_MODEL, GENERATION_MODEL, CHROMA_DB_DIR
 
 def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
     if chat_history is None:
@@ -30,16 +30,16 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
     except Exception as e:
         return f"API Fehler (Embedding): {e}", [], "", ""
 
-    if db_type == "sqlite":
+    if db_type == "chroma":
         try:
-            vdb = SimpleVectorDB(VECTOR_DB_FILE)
+            chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
+            collection = chroma_client.get_collection(name="german_law")
             
-            results = vdb.query(
-                query_embedding=query_embedding,
+            results = collection.query(
+                query_embeddings=[query_embedding],
                 n_results=n_results
             )
             
-            # SimpleVectorDB returns lists of lists
             for i in range(len(results['ids'][0])):
                 doc_text = results['documents'][0][i]
                 meta = results['metadatas'][0][i]
@@ -47,10 +47,10 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
                 
                 doc_header = f"{meta.get('id', '?')} - {meta.get('title', '?')}"
                 retrieved_docs.append(doc_text)
-                sources.append(f"{doc_header} (L2-Dist: {score:.4f})")
+                sources.append(f"{doc_header} (Distance: {score:.4f})")
                 
         except Exception as e:
-            return f"Fehler mit SQLite DB: {e}. Haben Sie 'python setup.py --target sqlite' ausgeführt?", [], "", ""
+            return f"Fehler mit ChromaDB: {e}. Haben Sie 'python setup.py --target chroma' ausgeführt?", [], "", ""
 
     else: # Default: Pickle
         # 1. Datenbank laden
