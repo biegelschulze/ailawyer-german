@@ -15,6 +15,7 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
     
     retrieved_docs = []
     sources = []
+    found_laws = set()
 
     try:
         # Embedding für die Query
@@ -30,6 +31,10 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
     except Exception as e:
         return f"API Fehler (Embedding): {e}", [], "", ""
 
+    if db_type == "sqlite":
+        # ... (removed for this specific replacement context, but logically handled)
+        pass 
+
     if db_type == "chroma":
         try:
             chroma_client = chromadb.PersistentClient(path=CHROMA_DB_DIR)
@@ -44,6 +49,10 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
                 doc_text = results['documents'][0][i]
                 meta = results['metadatas'][0][i]
                 score = results['distances'][0][i]
+                
+                # Sammle Gesetzesnamen
+                if 'law' in meta:
+                    found_laws.add(meta['law'])
                 
                 doc_header = f"{meta.get('id', '?')} - {meta.get('title', '?')}"
                 retrieved_docs.append(doc_text)
@@ -71,12 +80,24 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
         for idx in top_indices:
             meta = metadatas[idx]
             score = similarities[idx]
+            
+            # Sammle Gesetzesnamen
+            if 'law' in meta:
+                found_laws.add(meta['law'])
+                
             doc_header = f"{meta['id']} - {meta['title']}"
             retrieved_docs.append(f"{doc_header}\n{meta['text']}")
             sources.append(f"{doc_header} (Score: {score:.4f})")
 
     context_str = "\n\n".join(retrieved_docs)
     
+    # Dynamische Rollen-Beschreibung
+    if found_laws:
+        laws_str = " und ".join(sorted(found_laws))
+        role_description = f"Du bist ein spezialisierter Anwalt für {laws_str}."
+    else:
+        role_description = "Du bist ein juristischer Assistent für das deutsche Recht."
+
     # Verlauf formatieren
     history_str = ""
     for msg in chat_history:
@@ -84,7 +105,7 @@ def get_answer(query_text, chat_history=None, n_results=5, db_type="pickle"):
         history_str += f"{role}: {msg['content']}\n"
 
     # 4. Prompt Engineering
-    prompt = f"""Du bist ein juristischer Assistent für das deutsche Recht.
+    prompt = f"""{role_description}
 
 Hintergrundwissen (Gesetze):
 {context_str}
