@@ -1,0 +1,17 @@
+import google.generativeai as genai
+import os
+
+api_key = os.environ.get("GEMINI_API_KEY")
+if not api_key:
+    print("Kein API Key!")
+    exit(1)
+
+genai.configure(api_key=api_key)
+
+print("Verfügbare Modelle:")
+try:
+    for m in genai.list_models():
+        if 'embedContent' in m.supported_generation_methods:
+            print(f"- {m.name}")
+except Exception as e:
+    print(f"Fehler beim Listen der Modelle: {e}")
